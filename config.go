@@ -33,6 +33,7 @@ type ClientConfig struct {
 	APIVersion           string                    // required when APIType is APITypeAzure or APITypeAzureAD
 	AzureModelMapperFunc func(model string) string // replace model to azure deployment name func
 	HTTPClient           *http.Client
+	AdditionalHeaders    map[string][]string
 
 	EmptyMessagesLimit uint
 }
@@ -45,6 +46,8 @@ func DefaultConfig(authToken string) ClientConfig {
 		OrgID:     "",
 
 		HTTPClient: &http.Client{},
+
+		AdditionalHeaders: make(map[string][]string, 0),
 
 		EmptyMessagesLimit: defaultEmptyMessagesLimit,
 	}
