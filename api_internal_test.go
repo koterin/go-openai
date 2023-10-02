@@ -107,6 +107,77 @@ func TestRequestAuthHeader(t *testing.T) {
 	}
 }
 
+func TestRequestAdditionalHeaders(t *testing.T) {
+	cases := []struct {
+		Name      string
+		APIType   APIType
+		HeaderKey string
+		Token     string
+		OrgID     string
+		Expect    string
+	}{
+		{
+			"OpenAIDefault",
+			"",
+			"Authorization",
+			"dummy-token-openai",
+			"",
+			"Bearer dummy-token-openai",
+		},
+		{
+			"OpenAIOrg",
+			APITypeOpenAI,
+			"Authorization",
+			"dummy-token-openai",
+			"dummy-org-openai",
+			"Bearer dummy-token-openai",
+		},
+		{
+			"OpenAI",
+			APITypeOpenAI,
+			"Authorization",
+			"dummy-token-openai",
+			"",
+			"Bearer dummy-token-openai",
+		},
+		{
+			"AzureAD",
+			APITypeAzureAD,
+			"Authorization",
+			"dummy-token-azure",
+			"",
+			"Bearer dummy-token-azure",
+		},
+		{
+			"Azure",
+			APITypeAzure,
+			AzureAPIKeyHeader,
+			"dummy-api-key-here",
+			"",
+			"dummy-api-key-here",
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.Name, func(t *testing.T) {
+			az := DefaultConfig(c.Token)
+			az.APIType = c.APIType
+			az.OrgID = c.OrgID
+
+			cli := NewClientWithConfig(az)
+			req, err := cli.newRequest(context.Background(), "POST", "/chat/completions")
+			if err != nil {
+				t.Errorf("Failed to create request: %v", err)
+			}
+			actual := req.Header.Get(c.HeaderKey)
+			if actual != c.Expect {
+				t.Errorf("Expected %s, got %s", c.Expect, actual)
+			}
+			t.Logf("%s: %s", c.HeaderKey, actual)
+		})
+	}
+}
+
 func TestAzureFullURL(t *testing.T) {
 	cases := []struct {
 		Name             string
